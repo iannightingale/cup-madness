@@ -20,13 +20,16 @@ bracketology.brackets_dict.update({
     }
 })
 
-weights = []
+MAX_UPSET_CHANCE = .5
+
+upset_chances = []
 
 with open('data/cups.txt', 'r') as f:
     order = f.read().splitlines()
+    for i in order:
+        upset_chances.append(MAX_UPSET_CHANCE * int(i)/len(order))
 
 regions = []
-
 all_teams = []
 
 def sim_func(game):
@@ -34,18 +37,18 @@ def sim_func(game):
     team2 = game.bottom_team
     seed_diff = team1.seed - team2.seed
 
-    lower, higher = (team2, team1) if seed_diff < 0 else (team1, team2)
+    if seed_diff == 0:
+        worse, better = (team2, team1) if random.random() < .5 else (team1, team2)
+    else:
+        worse, better = (team2, team1) if seed_diff < 0 else (team1, team2)
 
-    pos = all_teams.index(higher)
-    upset_chance = (.5 * (pos / len(order)))
-    return lower if random.random() < upset_chance else higher
-    
+    upset_chance = upset_chances[all_teams.index(better)]
+    return worse if random.random() < upset_chance else better
 
 for region_name in ["east", "west", "south", "midwest"]:
     with open(f'data/{region_name}.txt', 'r') as f:
         lines = f.read().splitlines()
 
-    games = []
     teams = []
 
     for line in lines:
@@ -61,6 +64,13 @@ for region_name in ["east", "west", "south", "midwest"]:
 
     region = bracketology.SubBracket16(region_name).initialize_first_round(teams)
     regions.append(region)
+
+teams_and_chances = [(upset_chances[i], team) for i, team in enumerate(all_teams)]
+teams_and_chances.sort(key = lambda x: x[0], reverse=True)
+
+print("Upset chances:")
+for weight, team in teams_and_chances:
+    print(f"{team}: {weight}")
 
 winners_by_region = {
     region.region: defaultdict(list) 
