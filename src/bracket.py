@@ -6,15 +6,15 @@ from collections import defaultdict
 # Patch
 bracketology.brackets_dict.clear()
 bracketology.brackets_dict.update({
-    "2023": {
+    "2024": {
         "Finals": {
             "game1": {
-                "team1": "south",
-                "team2": "east",
+                "team1": "east",
+                "team2": "west",
             },
             "game2": {
-                "team1": "midwest",
-                "team2": "west",
+                "team1": "south",
+                "team2": "midwest",
             },
         }
     }
@@ -25,9 +25,10 @@ MAX_UPSET_CHANCE = .5
 upset_chances = []
 
 with open('data/cups.txt', 'r') as f:
-    order = f.read().splitlines()
+    order = [int(x) for x in f.read().splitlines()]
+    assert sorted(order) == list(range(1, 65)), f"Invalid order: {order}"
     for i in order:
-        upset_chances.append(MAX_UPSET_CHANCE * int(i)/len(order))
+        upset_chances.append(MAX_UPSET_CHANCE * i/len(order))
 
 regions = []
 all_teams = []
@@ -82,7 +83,7 @@ def run_full_sim():
         region.run_bracket(sim_func)
         print(region)
 
-    final_four = bracketology.FinalFour(2023)
+    final_four = bracketology.FinalFour(2024)
     final_four.set_matches({
         region.region: region.winner for region in regions
     })
